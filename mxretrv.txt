@@ -1,0 +1,50 @@
+input: domain list
+output: list of DNS MX records for each domain
+
+
+! multithreaded --> seperate thread for each domain
+
+Examples:
+    mxretrv google.com -f domainlists.txt -o mxdocuments.csv
+    mxretrv google.com yahoo.com ...
+
+CL Format:
+    mxretrv v0.1 - SNAPSHOT
+    Usage:
+        mxretrv [domain_names...] [-f|--file input_file] [-o|--output output_file] [-b|--batch-size size] [-m|--multi] [-v|--verbose]
+
+    Options:
+
+        domain_names: list of domain names delimited with ' ' (read from stdin ('\n') if no domain_names is passed)
+
+        -f --file: a text file containing domain names delimited with "\n"
+
+        -o --output: CSV file to output MX records for each domain name (otherwise stdout is used)
+
+        -b --batch-size: the number of domain names to process in each thread (if multithreading is not enabled, the value of this argument will be ignored)
+
+        -m --multi: enable multithreading
+
+        -v --verbose: output extra information about the process
+
+        -h --help: print this message
+
+Design Thoughts:
+    We'll have a JAR file --> compiled source code
+    make this executable:
+        shell script?
+            (/usr/local/bin may cause problems (may have to copy the entire project dir???))
+
+    multithreading arch:
+                    [INPUT: n domain lists delim w/ '\n']
+                                       |
+                                       |
+                                       v
+                [Thread #1]   [Thread #2]   [Thread #3] ... [Thread #(n/b)]
+                    |              |                .               |
+                    |              |                .               |
+                    v              v                .               v
+                O(b) operation    O(b) operation    ...     O(b) operation
+
+
+        * optimum b size? (experiment with different results) --> must be the default
