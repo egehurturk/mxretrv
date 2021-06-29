@@ -11,7 +11,7 @@ Examples:
 CL Format:
     mxretrv v0.1 - SNAPSHOT
     Usage:
-        mxretrv [domain_names...] [-f|--file input_file] [-o|--output output_file] [-b|--batch-size size] [-m|--multi] [-v|--verbose]
+        mxretrv -f|--file input_file -o|--output output_file [-b|--batch-size size] [-m|--multi] [-v|--verbose]
 
     Options:
 
