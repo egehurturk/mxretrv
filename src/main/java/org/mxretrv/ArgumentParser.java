@@ -29,7 +29,7 @@ public class ArgumentParser {
         N.setArgName("size");
         options.addOption(N);
 
-        Option output = new Option("o", "output", true, "CSV file to output MX records for each domain name (otherwise stdout is used)");
+        Option output = new Option("o", "output", true, "JSON file to output MX records for each domain name (otherwise stdout is used)");
         output.setRequired(false);
         output.setArgName("output_file");
         options.addOption(output);

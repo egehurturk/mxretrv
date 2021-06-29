@@ -48,3 +48,51 @@ Design Thoughts:
 
 
         * optimum b size? (experiment with different results) --> must be the default
+
+
+    Thread number = nThread + rThread
+    Input size = nThread * batchSize + rThread * rSize
+
+    [Worker #1] --> takes in a batch of input (Runnable) and outputs:
+    {
+        "Domain_Name_1": ["MX_1"], ["MX_2"], ..., ["MX_N"],
+        "Domain_Name_2": ["MX_1"], ["MX_2"], ..., ["MX_N"],
+        ...,
+        "Domain_Name_N": ["MX_1"], ["MX_2"], ..., ["MX_N"]
+    }
+
+
+    [Worker #2] --> takes in a batch of input (Runnable)
+    ...
+    .
+    .
+    [Worker #n] --> takes in a batch of input (Runnable)
+
+    =======================================================================================
+    next_batch_start = 0
+    for i = 0 to thread_number:
+        input_batch_sub = input[next_batch_start : next_batch_start + batch_number]
+        create Worker W with input_batch_sub
+        pool executes Worker W
+
+    for i = 0 to remaining_threads:
+        input_batch_sub = input[next_batch_start: next_batch_start + remaining_size]
+        create Worker W with input_batch_sub
+        pool executes Worker W
+    =======================================================================================
+
+
+    ω = number of threads (constant) (163)
+    β = ⌊N / ω⌋           (batch size)
+    α = N - βω            (remaining size)
+    δ = ⌈ α / β ⌉         (remaining thread)
+
+    Prove that δ = 1
+
+    δ =  ⌈ α / β ⌉ = ⌈ (N - βω) / ⌊N / ω⌋ ⌉
+                   = ⌈ (N - ⌊N / ω⌋ω) / ⌊N / ω⌋ ⌉
+
+    (ω ∣ N)  ==> δ = 0
+    (ω !| N) ==>       
+
+
