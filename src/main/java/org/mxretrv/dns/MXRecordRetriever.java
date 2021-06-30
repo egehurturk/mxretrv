@@ -9,8 +9,21 @@ import javax.naming.directory.InitialDirContext;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MXRecordRetriever {
+    public static void main(String[] args) throws NamingException {
+        List<String> l = mxRecords("octeth.com");
+        if (l == null) {
+            System.out.println("no records");
+            return;
+        }
+        for (String s: l) {
+            System.out.print(s + " ");
+        }
+        System.out.println();
+    }
 
     /**
      * Get MX records of a given domain name as an array
@@ -26,8 +39,15 @@ public class MXRecordRetriever {
         NamingEnumeration<?> nEnum = mx.getAll();
         List<String> records = new ArrayList<String>();
 
-        while (nEnum.hasMore())
-            records.add((String) nEnum.next());
+        while (nEnum.hasMore()) {
+            String mxRaw = (String) (nEnum.next());
+            Matcher m = Pattern.compile("\\p{Alpha}").matcher(mxRaw);
+            int ind = 0;
+            if (m.find())
+                ind = m.start();
+            String mxExcludePriority = mxRaw.substring(ind, mxRaw.length() - 1);
+            records.add(mxExcludePriority);
+        }
         return records;
     }
 
