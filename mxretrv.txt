@@ -86,13 +86,35 @@ Design Thoughts:
     β = ⌊N / ω⌋           (batch size)
     α = N - βω            (remaining size)
     δ = ⌈ α / β ⌉         (remaining thread)
+    N > ω is guaranteed
+
 
     Prove that δ = 1
 
     δ =  ⌈ α / β ⌉ = ⌈ (N - βω) / ⌊N / ω⌋ ⌉
                    = ⌈ (N - ⌊N / ω⌋ω) / ⌊N / ω⌋ ⌉
 
-    (ω ∣ N)  ==> δ = 0
-    (ω !| N) ==>       
+
+
+    =======================================================================================
+
+
+    Given the input file (a text (txt) file containing domain names delimited with
+    '\n') and the input size, the program splits the work into "batches" (if
+    multithreading is enabled and input size is larger than the limit). The program
+    generates a fixed thread pool with size 200, as maximum thread number is
+    163 + remaining threads (which is always 1), and spawns a thread responsible for
+    doing its work for its batch.
+
+    Every thread should get the MX document for batch_size domains. The goal is to store
+    the MX documents in an output file. But if every thread simultaneously tries
+    to access and write to output file, race condition occurs.
+
+    One way to overcome this problem is to have a single thread that handles I/O job,
+    that is, writing to output file, and have other threads simply put the text to be written
+    to a queue that the I/O thread draws from.
+
+    One other way is to lock (make it synchronous) the threads when they print their results
+    to the output file.
 
 
