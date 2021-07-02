@@ -2,14 +2,14 @@ package org.mxretrv.threads;
 
 import java.util.AbstractQueue;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class IOQueue<T> extends AbstractQueue<T> {
     /** queue data */
-    private LinkedList<T> elements;
+    private LinkedBlockingQueue<T> elements;
 
     public IOQueue() {
-        this.elements = new LinkedList<>();
+        this.elements = new LinkedBlockingQueue<>();
     }
 
     @Override
@@ -31,9 +31,7 @@ public class IOQueue<T> extends AbstractQueue<T> {
      */
     @Override
     public boolean offer(T t) {
-        if(t == null) return false;
-        elements.add(t);
-        return true;
+        return elements.offer(t);
     }
 
     /**
@@ -44,13 +42,7 @@ public class IOQueue<T> extends AbstractQueue<T> {
      */
     @Override
     public T poll() {
-        Iterator<T> iter = elements.iterator();
-        T t = iter.next();
-        if(t != null){
-            iter.remove();
-            return t;
-        }
-        return null;
+        return elements.poll();
     }
 
     /**
@@ -61,6 +53,6 @@ public class IOQueue<T> extends AbstractQueue<T> {
      */
     @Override
     public T peek() {
-        return elements.getFirst();
+        return elements.peek();
     }
 }
