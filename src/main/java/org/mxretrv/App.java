@@ -2,8 +2,12 @@ package org.mxretrv;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.mxretrv.threads.SingleThreadWorker;
 import org.mxretrv.threads.ThreadOptimizer;
 import org.mxretrv.utils.ArgumentParser;
+
+import javax.naming.NamingException;
+import java.io.IOException;
 
 public class App {
     protected static Logger logger = LogManager.getLogger(App.class);
@@ -29,10 +33,13 @@ public class App {
     private static long DEFAULT_BATCH_SIZE;
 
 
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws IOException, NamingException {
         setCommandLineOptions(args);
         logOptions();
-
+        long startTime = System.currentTimeMillis();
+        new SingleThreadWorker(inputFileStr, outputFileStr).work();
+        long endTime = System.currentTimeMillis();
+        System.out.println("That took " + (endTime - startTime) + " milliseconds");
     }
 
     /**
@@ -72,7 +79,7 @@ public class App {
     private static long computeBatchSize(long N, ArgumentParser parser) {
         long b_t;
         DEFAULT_BATCH_SIZE = ThreadOptimizer.computeBatchSize(N);
-        if (N <= 30_000)
+        if (N <= 20_000)
             DEFAULT_BATCH_SIZE = 5000;
 
         if (parser.getBatchArgument() == null && multiThreadingEnabled)
