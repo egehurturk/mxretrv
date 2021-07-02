@@ -26,6 +26,7 @@ public final class IOUtils {
             Files.createFile(p);
         } catch (IOException err) {
             logger.warn("IO error occurred. Cannot create " + path);
+            logger.error(err.getMessage());
             return false;
         }
         try {
@@ -36,5 +37,7 @@ public final class IOUtils {
         }
         return true;
     }
+
+
 
 }

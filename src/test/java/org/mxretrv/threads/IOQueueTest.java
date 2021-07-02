@@ -1,13 +1,12 @@
-package org.mxretrv;
+package org.mxretrv.threads;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mxretrv.threads.IOQueue;
 
 @DisplayName("I/O Queue Tests")
-public class QueueTest {
+public class IOQueueTest {
     private IOQueue<Integer> ioQueue;
 
     @BeforeEach
