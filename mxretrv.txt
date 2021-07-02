@@ -84,7 +84,7 @@ Design Thoughts:
 
     ω = number of threads (constant) (163)
     β = ⌊N / ω⌋           (batch size)
-    α = N - βω            (remaining size)
+    α = N mod ω           (remaining size)
     δ = ⌈ α / β ⌉         (remaining thread)
     N > ω is guaranteed
 
@@ -117,4 +117,86 @@ Design Thoughts:
     One other way is to lock (make it synchronous) the threads when they print their results
     to the output file.
 
+    =============================================================================================================================
 
+    input  file   ---->  give it to each thread  ---->  each thread should    ---->  thread post result string  ---+
+    (n lines)              (file pointer)              read its own portion               to IOQueue               |
+                                                        (specified w/ batch_size)                                  |
+                                                                                                                   |
+                                                                                                                   v
+                                                            IOWorker save the result    <----     IOWorker read from IOQueue
+                                                                to output file                     whenever its size changes
+
+    =============================================================================================================================
+
+    Results:
+    1) Single thread can process 5k domains in ~17 seconds
+
+    =============================================================================================================================
+
+
+    
+
+    Thread workings:
+
+    1) Test what happens if multiple threads put something into the queue
+    ```
+        @Override
+        public void run() {
+            inputQueue.offer(thing);
+        }
+
+        IOQueue<String> ioQueue = new IOQueue<>();
+        Listeners.register(new IOWorker(ioQueue));
+        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        executorService.execute(new MXWorker(ioQueue, "thread-1"));
+        executorService.execute(new MXWorker(ioQueue, "thread-2"));
+        executorService.execute(new MXWorker(ioQueue, "thread-3"));
+        executorService.shutdown();
+        Listeners.incomingJob();
+    ```
+
+    Results:
+    ```
+    thread-1
+    thread-2
+    thread-3
+    ```
+
+
+    2) Test what happens if multiple threads puts 1+ things into the queue
+    Doesn't work ==> sometimes NPE! However, a worker doesn't put more than 1 things into the queue.
+
+
+    **3) Test what happens if multiple threads puts a single thing into the queue and call event after putting**
+    This method might be the best method. It works.
+    ```
+            LinkedBlockingQueue<String> ioQueue = new LinkedBlockingQueue<>();
+            Listeners.register(new IOWorker(ioQueue));
+            ExecutorService executorService = Executors.newFixedThreadPool(3);
+            executorService.execute(new MXWorker(ioQueue, "thread-1"));
+            executorService.execute(new MXWorker(ioQueue, "thread-2"));
+            executorService.execute(new MXWorker(ioQueue, "thread-3"));
+            executorService.shutdown();
+
+            @Override
+            public void work() {
+                System.out.println(inputQueue.poll());
+            }
+
+            @Override
+            public void work() {
+                inputQueue.offer(thing);
+                Listeners.incomingJob();
+            }
+    ```
+
+
+    4) Test what happens if multiple threads puts a single thing into the queue and call event after every thread terminates
+    THIS DOES NOT WORK!
+
+
+
+TODO: implement ( design) MXWorker class
+TODO: implement ( design) IOWorker class
+TODO: recode App
