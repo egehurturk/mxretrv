@@ -1,0 +1,28 @@
+{
+    "google.com": [
+        "aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt1.aspmx.l.google.com"
+    ],
+    "octeth.com": [
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "aspmx2.googlemail.com",
+        "aspmx.l.google.com",
+        "aspmx3.googlemail.com"
+    ],
+    "hotmail.com": ["hotmail-com.olc.protection.outlook.com"],
+    "ebay.com": [
+        "mx1.hc2186-24.iphmx.com",
+        "mx2.hc2186-24.iphmx.com"
+    ],
+    "amazon.com": ["amazon-smtp.amazon.com"],
+    "yahoo.com": [
+        "mta6.am0.yahoodns.net",
+        "mta5.am0.yahoodns.net",
+        "mta7.am0.yahoodns.net"
+    ],
+    "example.com": ["0 "]
+}
