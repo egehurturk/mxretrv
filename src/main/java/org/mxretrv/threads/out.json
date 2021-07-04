@@ -1,0 +1,50 @@
+{
+    "medium.com": [
+        "alt2.aspmx.l.google.com",
+        "aspmx2.googlemail.com",
+        "aspmx3.googlemail.com",
+        "alt1.aspmx.l.google.com",
+        "aspmx.l.google.com"
+    ],
+    "youtube.com": ["smtp.google.com"],
+    "reddit.com": [
+        "alt1.aspmx.l.google.com",
+        "aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "aspmx2.googlemail.com",
+        "aspmx3.googlemail.com"
+    ]
+}{
+    "yahoo.com": [
+        "mta5.am0.yahoodns.net",
+        "mta7.am0.yahoodns.net",
+        "mta6.am0.yahoodns.net"
+    ],
+    "octeth.com": [
+        "aspmx2.googlemail.com",
+        "aspmx.l.google.com",
+        "aspmx3.googlemail.com",
+        "alt2.aspmx.l.google.com",
+        "alt1.aspmx.l.google.com"
+    ],
+    "google.com": [
+        "alt3.aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "aspmx.l.google.com"
+    ]
+}{
+    "stackoverflow.com": [
+        "alt2.aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com",
+        "aspmx.l.google.com",
+        "alt3.aspmx.l.google.com"
+    ],
+    "amazon.com": ["amazon-smtp.amazon.com"],
+    "ebay.com": [
+        "mx1.hc2186-24.iphmx.com",
+        "mx2.hc2186-24.iphmx.com"
+    ]
+}

@@ -3,6 +3,7 @@ package org.mxretrv.threads;
 import java.util.AbstractQueue;
 import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class IOQueue<T> extends AbstractQueue<T> {
     /** queue data */
@@ -45,6 +46,13 @@ public class IOQueue<T> extends AbstractQueue<T> {
         return elements.poll();
     }
 
+    public T poll(long timeout, TimeUnit unit) {
+        try {
+            return elements.poll(timeout, unit);
+        } catch (InterruptedException e) {
+            return null;
+        }
+    }
     /**
      * Retrieves, but does not remove, the head of this queue,
      * or returns {@code null} if this queue is empty.

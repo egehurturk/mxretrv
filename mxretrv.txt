@@ -197,6 +197,4 @@ Design Thoughts:
 
 
 
-TODO: implement ( design) MXWorker class
-TODO: implement ( design) IOWorker class
 TODO: recode App

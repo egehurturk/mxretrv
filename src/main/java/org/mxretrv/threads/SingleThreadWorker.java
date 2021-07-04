@@ -5,6 +5,7 @@ import org.mxretrv.dns.MXRecordRetriever;
 import org.mxretrv.utils.IOUtils;
 
 import javax.naming.NamingException;
+import java.util.Collections;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -40,7 +41,7 @@ public class SingleThreadWorker implements Worker {
     }
 
     @Override
-    public void work() throws IOException, NamingException {
+    public void work() throws IOException {
         ArrayList<String> data = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(new File(inputFileStr)))) {
             String line;
@@ -50,7 +51,12 @@ public class SingleThreadWorker implements Worker {
         }
         Map<String, List<String>> domainMx = new HashMap<>();
         for (String domain: data) {
-            domainMx.put(domain, MXRecordRetriever.mxRecords(domain));
+            try {
+                domainMx.put(domain, MXRecordRetriever.mxRecords(domain));    
+            } catch (NamingException err) {
+                domainMx.put(domain, Collections.singletonList(""));
+            }
+            
         }
         String json = new JSONObject(domainMx).toString(4);
         if (!IOUtils.writeToFile(json, outputFileStr))
