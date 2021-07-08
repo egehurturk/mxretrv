@@ -24,11 +24,6 @@ public class ArgumentParser {
         input.setArgName("input_file");
         options.addOption(input);
 
-        Option N = new Option("n", "lines", true, "Number of domains (number of lines in the input file)");
-        N.setRequired(true);
-        N.setArgName("size");
-        options.addOption(N);
-
         Option output = new Option("o", "output", true, "JSON file to output MX records for each domain name (otherwise stdout is used)");
         output.setRequired(false);
         output.setArgName("output_file");
@@ -71,7 +66,6 @@ public class ArgumentParser {
 
     public String[] getArgs() { return this.args; }
     public String getInputArgument() { return cmd.getOptionValue("input"); }
-    public String getN() { return cmd.getOptionValue("n"); }
     public String getOutputArgument() { return cmd.getOptionValue("output"); }
     public String getBatchArgument() { return cmd.getOptionValue("batch-size"); }
     public boolean getMultiArgument() { return cmd.hasOption("multi"); }
