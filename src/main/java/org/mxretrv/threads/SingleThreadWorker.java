@@ -52,7 +52,11 @@ public class SingleThreadWorker implements Worker {
         Map<String, List<String>> domainMx = new HashMap<>();
         for (String domain: data) {
             try {
-                domainMx.put(domain, MXRecordRetriever.mxRecords(domain));    
+                List<String> domains = MXRecordRetriever.mxRecords(domain);
+                if (domains == null)
+                    domainMx.put(domain, Collections.singletonList(""));    
+                else
+                    domainMx.put(domain, domains);    
             } catch (NamingException err) {
                 domainMx.put(domain, Collections.singletonList(""));
             }
