@@ -2,23 +2,23 @@ package org.mxretrv;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.mxretrv.threads.IOQueue;
 import org.mxretrv.threads.IOWorker;
 import org.mxretrv.threads.MXWorker;
-import org.mxretrv.threads.ThreadOptimizer;
 import org.mxretrv.threads.SingleThreadWorker;
 import org.mxretrv.utils.ArgumentParser;
 
 import javax.naming.NamingException;
-import java.util.Iterator;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import org.json.*;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -29,11 +29,10 @@ public class App {
     protected static Logger logger = LogManager.getLogger(App.class);
     /** input file ('\n' separated file) containing domain names */
     private static String inputFileStr;
-    private static long N;
     /** output file (',' separated file) containing MX records */
     private static String outputFileStr;
     /** number of domains to be processed in one thread */
-    private static long batchSize;
+    private static int batchSize;
     private static long nThreads;
     public static long remSize;
     public static long remThreads;
@@ -46,7 +45,7 @@ public class App {
      * Nthreads = Ncpu * Ucpu * (1 + W/C)
      * Bsize = Ndomains / Nthreads
      */
-    private static long DEFAULT_BATCH_SIZE;
+    private static int DEFAULT_BATCH_SIZE;
 
 
     public static void main( String[] args ) throws IOException, NamingException, InterruptedException {
@@ -54,11 +53,12 @@ public class App {
         logOptions();
 
         if (!multiThreadingEnabled) {
+            System.out.println("using single thread");
             long startTime = System.currentTimeMillis();
             SingleThreadWorker s = new SingleThreadWorker(inputFileStr, outputFileStr);
             s.work();
             long endTime = System.currentTimeMillis();
-            System.out.println("That took " + (endTime - startTime) + " milliseconds, " + (endTime - startTime) / 100 + " seconds");
+            System.out.println("That took " + (endTime - startTime) + " milliseconds, " + (endTime - startTime) / 1000 + " seconds");
         }
 
         IOQueue<Map<String, List<String>>> queue = new IOQueue<>();
@@ -70,33 +70,32 @@ public class App {
         try (BufferedReader br = new BufferedReader(new FileReader(new File(inputFileStr)))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (nSamples >= 1000)
+                if (nSamples >= 40)
                     break;
                 data.add(line);
                 nSamples++;
             }
         }
 
-        logger.info("data size: " + data.size());
+        logInfo(logger, "data size: " + data.size());
 
         List<Runnable> tasks = new ArrayList<>();
 
         int TOTAL_SIZE = data.size();
-        int THREAD_N   = 100;
-        int BATCH_SIZE = TOTAL_SIZE / THREAD_N;
-
-        logger.info("threads: " + THREAD_N);
-        logger.info("batch size: " + BATCH_SIZE);
+        batchSize = Math.min(TOTAL_SIZE, batchSize);
+        int THREAD_N   = TOTAL_SIZE / batchSize;
+        logInfo(logger, "threads: " + THREAD_N);
+        logInfo(logger, "batch size: " + batchSize);
 
         // test with 100 threads --> each thread with 507,000 / 100 = 5070 size
         for (int i = 0; i < THREAD_N; i++) {
-            ArrayList<String> batch = new ArrayList<>(data.subList(i * BATCH_SIZE, (i+1) * BATCH_SIZE));
+            ArrayList<String> batch = new ArrayList<>(data.subList(i * batchSize, (i+1) * batchSize));
             tasks.add(new MXWorker(queue, batch));
         }
 
         ExecutorService pool = Executors.newFixedThreadPool(THREAD_N);
         long startTime = System.currentTimeMillis();
-        logger.info("task size: " + tasks.size());
+        logInfo(logger, "task size: " + tasks.size());
         for (Runnable r: tasks)
             pool.execute(r);
         pool.shutdown();
@@ -112,12 +111,14 @@ public class App {
         ioWorker.work();
         long endTime = System.currentTimeMillis();
 
-        if (check(Files.readString(Paths.get(outputFileStr), StandardCharsets.US_ASCII), TOTAL_SIZE))
-            System.out.println("nice work!");
-        else
-            System.out.println("noooo!");
+        if (!useStdout) {
+            if (check(Files.readString(Paths.get(outputFileStr), StandardCharsets.US_ASCII), TOTAL_SIZE))
+                System.out.println("✅");
+            else
+                System.out.println("❌");
+        }
 
-        System.out.println("That took " + (endTime - startTime) + " milliseconds, " + (endTime - startTime) / 100 + " seconds");
+        System.out.println("That took " + (endTime - startTime) + " milliseconds, " + (endTime - startTime) / 1000 + " seconds");
     }
 
     private static boolean check(String contents, int dataSize) {
@@ -129,7 +130,7 @@ public class App {
             keys.next();
             count++;
         }
-        logger.info(count);
+        logInfo(logger, count);
         return count == dataSize;
 
     }
@@ -141,38 +142,22 @@ public class App {
     private static void setCommandLineOptions(String[] args) {
         ArgumentParser parser = new ArgumentParser(args);
         inputFileStr = parser.getInputArgument() ;
-        N = Long.parseLong(parser.getN());
 
         outputFileStr = parser.getOutputArgument() == null ? "" : parser.getOutputArgument();
         useStdout = outputFileStr.equals("");
         multiThreadingEnabled = parser.getMultiArgument();
         verboseModeEnabled = parser.getVerboseArgument();
-
-        if (multiThreadingEnabled) {
-            batchSize = computeBatchSize(N, parser);
-            // remSize = n mod batchSize
-            // a = nq + r, n = nThreads, q = batchSize, r = remainder
-            nThreads =  N / batchSize;
-            remSize = N - batchSize * nThreads;
-            remThreads = (int) Math.ceil( ((float) remSize) / batchSize ); // always = 1
-        } else {
-            batchSize = N;
-            nThreads = 1;
-            remSize = remThreads = 0;
-        }
+        batchSize = computeBatchSize(parser);
     }
 
     /**
      * Compute the ideal batch size, given the size of the input
-     * @param N size of input
      * @param parser argument parser to check existance of batch option
      * @return value of batch size
      */
-    private static long computeBatchSize(long N, ArgumentParser parser) {
-        long b_t;
-        DEFAULT_BATCH_SIZE = ThreadOptimizer.computeBatchSize(N);
-        if (N <= 20_000)
-            DEFAULT_BATCH_SIZE = 5000;
+    private static int computeBatchSize(ArgumentParser parser) {
+        int b_t;
+        DEFAULT_BATCH_SIZE = 1000;
 
         if (parser.getBatchArgument() == null && multiThreadingEnabled)
             b_t = DEFAULT_BATCH_SIZE;
@@ -180,7 +165,7 @@ public class App {
             b_t = 0;
         else
             b_t = Integer.parseInt(parser.getBatchArgument());
-        return Math.min(b_t, N);
+        return b_t;
     }
 
     /**
@@ -189,13 +174,43 @@ public class App {
     private static void logOptions() {
         if (!verboseModeEnabled)
             return;
-       logger.info("input file: " + inputFileStr);
-       logger.info("output file: " + outputFileStr);
-       logger.info("batch size: " + batchSize);
-       logger.info("using stdout " + useStdout);
-       logger.info("thread number: " + nThreads);
-       logger.info("remaining work: " + remSize);
-       logger.info("remaining number of threads: " + remThreads);
+       logInfo(logger, "input file: " + inputFileStr);
+       logInfo(logger, "output file: " + outputFileStr);
+       logInfo(logger, "batch size: " + batchSize);
+       logInfo(logger, "using stdout " + useStdout);
+       logInfo(logger, "thread number: " + nThreads);
+       logInfo(logger, "remaining work: " + remSize);
+       logInfo(logger, "remaining number of threads: " + remThreads);
+    }
+
+    public static void logInfo(Logger logger, String msg) {
+        if (verboseModeEnabled)
+            logger.info(msg);
+    }
+
+    public static void logWarn(Logger logger, String msg) {
+        if (verboseModeEnabled)
+            logger.warn(msg);
+    }
+
+    private static void logInfo(Logger logger, int msg) {
+        if (verboseModeEnabled)
+            logger.info(msg);
+    }
+
+    private static void logWarn(Logger logger, int msg) {
+        if (verboseModeEnabled)
+            logger.warn(msg);
+    }
+
+    private static void logInfo(Logger logger, double msg) {
+        if (verboseModeEnabled)
+            logger.info(msg);
+    }
+
+    private static void logWarn(Logger logger, double msg) {
+        if (verboseModeEnabled)
+            logger.warn(msg);
     }
 
     // Getters, setters
@@ -211,6 +226,14 @@ public class App {
 
     public static boolean isUseStdout() { return useStdout; }
 
-    public static long getDefaultBatchSize() { return DEFAULT_BATCH_SIZE; }
+    public static int getDefaultBatchSize() { return DEFAULT_BATCH_SIZE; }
 
 }
+
+/*
+
+TODO:
+    - [] Refactor thread - batch division
+        - Default batch size is 100
+    - [] Test on inputs
+ */
