@@ -8,11 +8,9 @@ import org.mxretrv.threads.IOWorker;
 import org.mxretrv.threads.MXWorker;
 import org.mxretrv.threads.SingleThreadWorker;
 import org.mxretrv.utils.ArgumentParser;
+import org.mxretrv.utils.IOUtils;
 
-import javax.naming.NamingException;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.awt.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -48,54 +46,47 @@ public class App {
     private static int DEFAULT_BATCH_SIZE;
 
 
-    public static void main( String[] args ) throws IOException, NamingException, InterruptedException {
+    public static void main( String[] args ) throws IOException, InterruptedException {
         setCommandLineOptions(args);
         logOptions();
 
         if (!multiThreadingEnabled) {
-            System.out.println("using single thread");
-            long startTime = System.currentTimeMillis();
-            SingleThreadWorker s = new SingleThreadWorker(inputFileStr, outputFileStr);
-            s.work();
-            long endTime = System.currentTimeMillis();
-            System.out.println("That took " + (endTime - startTime) + " milliseconds, " + (endTime - startTime) / 1000 + " seconds");
+           singleThread();
         }
 
         IOQueue<Map<String, List<String>>> queue = new IOQueue<>();
-
-        ArrayList<String> data = new ArrayList<>();
-
-        int nSamples = 0;
-
-        try (BufferedReader br = new BufferedReader(new FileReader(new File(inputFileStr)))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (nSamples >= 40)
-                    break;
-                data.add(line);
-                nSamples++;
-            }
-        }
+        ArrayList<String> data = IOUtils.readFromCsv(inputFileStr, 1050);
 
         logInfo(logger, "data size: " + data.size());
 
         List<Runnable> tasks = new ArrayList<>();
 
         int TOTAL_SIZE = data.size();
-        batchSize = Math.min(TOTAL_SIZE, batchSize);
-        int THREAD_N   = TOTAL_SIZE / batchSize;
+        batchSize = Math.min(TOTAL_SIZE, batchSize); // if batch size is 1000 and input size is 40 make it 40
+        int THREAD_N   = TOTAL_SIZE / batchSize;    // 1 if total_size <= batch_size        floor(total_size / batch_size) else
+        int R_THREAD_N = (TOTAL_SIZE % batchSize == 0) ? 0 : 1;    // remaining thread number (0 if THREAD_N == 1)
+        int R_BATCH    = TOTAL_SIZE - THREAD_N * batchSize; // R_THREAD_N will do this much job
+
         logInfo(logger, "threads: " + THREAD_N);
         logInfo(logger, "batch size: " + batchSize);
+        logInfo(logger, "remaining thread: " + R_THREAD_N);
+        logInfo(logger, "remaining batch: " + R_BATCH);
 
-        // test with 100 threads --> each thread with 507,000 / 100 = 5070 size
-        for (int i = 0; i < THREAD_N; i++) {
+        // Prepare data
+        int i;
+        for (i = 0; i < THREAD_N; i++) {
             ArrayList<String> batch = new ArrayList<>(data.subList(i * batchSize, (i+1) * batchSize));
             tasks.add(new MXWorker(queue, batch));
         }
+        if (R_THREAD_N == 1)
+            tasks.add(new MXWorker(queue, new ArrayList<>(data.subList(TOTAL_SIZE - R_BATCH, data.size()))));
 
         ExecutorService pool = Executors.newFixedThreadPool(THREAD_N);
         long startTime = System.currentTimeMillis();
-        logInfo(logger, "task size: " + tasks.size());
+
+        System.out.println("\n\n============== STARTING EXECUTION ===================\n\n");
+        Toolkit.getDefaultToolkit().beep();
+
         for (Runnable r: tasks)
             pool.execute(r);
         pool.shutdown();
@@ -109,8 +100,10 @@ public class App {
 
         IOWorker ioWorker = new IOWorker(queue, inputFileStr, outputFileStr);
         ioWorker.work();
-        long endTime = System.currentTimeMillis();
+        System.out.println("\n\n==============  FINISHED  ===================\n\n");
+        Toolkit.getDefaultToolkit().beep();
 
+        long endTime = System.currentTimeMillis();
         if (!useStdout) {
             if (check(Files.readString(Paths.get(outputFileStr), StandardCharsets.US_ASCII), TOTAL_SIZE))
                 System.out.println("✅");
@@ -168,6 +161,15 @@ public class App {
         return b_t;
     }
 
+    private static void singleThread() throws IOException {
+        System.out.println("using single thread");
+        long startTime = System.currentTimeMillis();
+        SingleThreadWorker s = new SingleThreadWorker(inputFileStr, outputFileStr);
+        s.work();
+        long endTime = System.currentTimeMillis();
+        System.out.println("That took " + (endTime - startTime) + " milliseconds, " + (endTime - startTime) / 1000 + " seconds");
+    }
+
     /**
      * Log options if verbose mode enabled
      */
@@ -178,9 +180,6 @@ public class App {
        logInfo(logger, "output file: " + outputFileStr);
        logInfo(logger, "batch size: " + batchSize);
        logInfo(logger, "using stdout " + useStdout);
-       logInfo(logger, "thread number: " + nThreads);
-       logInfo(logger, "remaining work: " + remSize);
-       logInfo(logger, "remaining number of threads: " + remThreads);
     }
 
     public static void logInfo(Logger logger, String msg) {
@@ -228,12 +227,6 @@ public class App {
 
     public static int getDefaultBatchSize() { return DEFAULT_BATCH_SIZE; }
 
+
+
 }
-
-/*
-
-TODO:
-    - [] Refactor thread - batch division
-        - Default batch size is 100
-    - [] Test on inputs
- */
