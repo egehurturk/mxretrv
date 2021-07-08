@@ -8,6 +8,9 @@ import org.mxretrv.dns.MXRecordRetriever;
 import javax.naming.NamingException;
 import java.util.*;
 
+import static org.mxretrv.App.logInfo;
+import static org.mxretrv.App.logWarn;
+
 public class MXWorker implements Worker, Runnable {
     /**
      * Input queue that the worker pushes its job. The worker
@@ -41,12 +44,16 @@ public class MXWorker implements Worker, Runnable {
         Map<String, List<String>> domainMx = new HashMap<>();
         for (String domain: domains) {
             try {
-                domainMx.put(domain, MXRecordRetriever.mxRecords(domain));
+                List<String> records = MXRecordRetriever.mxRecords(domain);
+                if (records == null)
+                    domainMx.put(domain, Collections.singletonList(""));
+                else
+                    domainMx.put(domain, records);
             } catch (NamingException e) {
-                logger.warn("Naming exception: "  + e.getMessage());
-                logger.warn("Cannot process domain " + domain);
+                logWarn(logger, "Naming exception [" + domain + "]: "  + e.getMessage());
                 domainMx.put(domain, Collections.singletonList(""));
             }
+            logInfo(logger, domain);
         }
         String jsonArrStr = new JSONObject(domainMx).toString(4);
         synchronized (inputQueue) {
