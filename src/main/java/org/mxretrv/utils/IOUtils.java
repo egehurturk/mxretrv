@@ -3,13 +3,12 @@ package org.mxretrv.utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 
 public final class IOUtils {
     private static final Logger logger = LogManager.getLogger(IOUtils.class);
@@ -89,6 +88,47 @@ public final class IOUtils {
             return false;
         }
         return true;
+    }
+
+    public static ArrayList<String> readFromCsv(String inputFileStr) {
+        ArrayList<String> data = new ArrayList<>();
+
+        // Read data into arraylist
+        try {
+            try (BufferedReader br = new BufferedReader(new FileReader(new File(inputFileStr)))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    data.add(line);
+                }
+            }
+        } catch (IOException err) {
+            logger.warn("Cannot store CSV file. Stopping execution:");
+            logger.info(err.getMessage());
+        }
+
+        return data;
+    }
+
+    public static ArrayList<String> readFromCsv(String inputFileStr, int nSamples) {
+        ArrayList<String> data = new ArrayList<>();
+        int n = 0;
+        // Read data into arraylist
+        try {
+            try (BufferedReader br = new BufferedReader(new FileReader(new File(inputFileStr)))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (n >= nSamples)
+                        break;
+                    data.add(line);
+                    n++;
+                }
+            }
+        } catch (IOException err) {
+            logger.warn("Cannot store CSV file. Stopping execution:");
+            logger.info(err.getMessage());
+        }
+
+        return data;
     }
 
 
