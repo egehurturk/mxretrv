@@ -1,6 +1,7 @@
 package org.mxretrv.threads;
 
 import org.json.JSONObject;
+import org.mxretrv.App;
 import org.mxretrv.utils.IOUtils;
 
 import java.io.File;
@@ -32,7 +33,7 @@ public class IOWorker implements Worker {
             throw new IllegalArgumentException("input file is not a regular file");
         if (! Paths.get(inputFileStr).isAbsolute())
             throw new IllegalArgumentException("input file is not an absolute path");
-        if (! Paths.get(outputFileStr).isAbsolute())
+        if (!App.isUseStdout() && !Paths.get(outputFileStr).isAbsolute())
             throw new IllegalArgumentException("output file is not an absolute path");
         this.inputFile = temp1;
         this.outputFile = temp2;
@@ -44,9 +45,11 @@ public class IOWorker implements Worker {
         for (Map<String, List<String>> map: inputQueue) {
             all.putAll(map);
         }
-        System.out.println("size: " + all.size());
         String json = new JSONObject(all).toString(4);
-        IOUtils.writeToFile(json, outputFile);
+        if (App.isUseStdout())
+            System.out.println("\n\n\n" + json + "\n\n\n");
+        else
+            IOUtils.writeToFile(json, outputFile);
     }
 
 
