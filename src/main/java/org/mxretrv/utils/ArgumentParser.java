@@ -18,6 +18,7 @@ public class ArgumentParser {
     }
 
     private Options prepareOptions() {
+
         Options options = new Options();
         Option input = new Option("i", "input", true, "a text file containing domain names delimited with \"\\n\"");
         input.setRequired(true);

@@ -1,0 +1,23 @@
+MXRetrv docs
+============
+
+Command-Line Arguments:
+-----------------------
+-m --multi: enable multithreading (otherwise the execution will run on single thread)
+
+-i --input: input file (with "\n" separated domains)
+
+-o --output: output file (should be JSON)
+
+-b --batch-size: number of domains each thread processes (keeping it low increases thread number)
+
+-v --verbose: verbose mode
+
+
+How it works:
+-------------
+Every thread gets ```batch_size``` number of domains. Thus keeping batch_size low increases the thread number, leading to a faster execution.
+A green checkmark at the end of output indicates that the list is complete
+
+
+

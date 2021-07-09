@@ -31,9 +31,7 @@ public class App {
     private static String outputFileStr;
     /** number of domains to be processed in one thread */
     private static int batchSize;
-    private static long nThreads;
-    public static long remSize;
-    public static long remThreads;
+    private static int sampleSize;
 
     private static boolean multiThreadingEnabled;
     private static boolean verboseModeEnabled;
@@ -135,7 +133,6 @@ public class App {
     private static void setCommandLineOptions(String[] args) {
         ArgumentParser parser = new ArgumentParser(args);
         inputFileStr = parser.getInputArgument() ;
-
         outputFileStr = parser.getOutputArgument() == null ? "" : parser.getOutputArgument();
         useStdout = outputFileStr.equals("");
         multiThreadingEnabled = parser.getMultiArgument();
