@@ -31,7 +31,6 @@ public class App {
     private static String outputFileStr;
     /** number of domains to be processed in one thread */
     private static int batchSize;
-    private static int sampleSize;
 
     private static boolean multiThreadingEnabled;
     private static boolean verboseModeEnabled;
@@ -82,7 +81,7 @@ public class App {
         ExecutorService pool = Executors.newFixedThreadPool(THREAD_N);
         long startTime = System.currentTimeMillis();
 
-        System.out.println("\n\n============== STARTING EXECUTION ===================\n\n");
+        logger.info("STARTING EXECUTION");
         Toolkit.getDefaultToolkit().beep();
 
         for (Runnable r: tasks)
@@ -93,12 +92,12 @@ public class App {
         if (!finished) {
             pool.shutdownNow();
             if (!pool.awaitTermination(60, TimeUnit.SECONDS))
-                System.err.println("Pool did not terminate");
+                logger.fatal("Pool did not terminate");
         }
 
         IOWorker ioWorker = new IOWorker(queue, inputFileStr, outputFileStr);
         ioWorker.work();
-        System.out.println("\n\n==============  FINISHED  ===================\n\n");
+        logger.info("FINISHED");
         Toolkit.getDefaultToolkit().beep();
 
         long endTime = System.currentTimeMillis();
@@ -109,7 +108,7 @@ public class App {
                 System.out.println("❌");
         }
 
-        System.out.println("That took " + (endTime - startTime) + " milliseconds, " + (endTime - startTime) / 1000 + " seconds");
+        logger.info(String.format("That took %d milliseconds, %d seconds", (endTime - startTime), (endTime - startTime) / 1000));
     }
 
     private static boolean check(String contents, int dataSize) {
@@ -159,12 +158,12 @@ public class App {
     }
 
     private static void singleThread() throws IOException {
-        System.out.println("using single thread");
+        logger.info("using single thread");
         long startTime = System.currentTimeMillis();
         SingleThreadWorker s = new SingleThreadWorker(inputFileStr, outputFileStr);
         s.work();
         long endTime = System.currentTimeMillis();
-        System.out.println("That took " + (endTime - startTime) + " milliseconds, " + (endTime - startTime) / 1000 + " seconds");
+        logger.info("That took " + (endTime - startTime) + " milliseconds, " + (endTime - startTime) / 1000 + " seconds");
     }
 
     /**
@@ -189,22 +188,22 @@ public class App {
             logger.warn(msg);
     }
 
-    private static void logInfo(Logger logger, int msg) {
+    public static void logInfo(Logger logger, int msg) {
         if (verboseModeEnabled)
             logger.info(msg);
     }
 
-    private static void logWarn(Logger logger, int msg) {
+    public static void logWarn(Logger logger, int msg) {
         if (verboseModeEnabled)
             logger.warn(msg);
     }
 
-    private static void logInfo(Logger logger, double msg) {
+    public static void logInfo(Logger logger, double msg) {
         if (verboseModeEnabled)
             logger.info(msg);
     }
 
-    private static void logWarn(Logger logger, double msg) {
+    public static void logWarn(Logger logger, double msg) {
         if (verboseModeEnabled)
             logger.warn(msg);
     }

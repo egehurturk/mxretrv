@@ -50,6 +50,7 @@ public class IOQueue<T> extends AbstractQueue<T> {
         try {
             return elements.poll(timeout, unit);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             return null;
         }
     }

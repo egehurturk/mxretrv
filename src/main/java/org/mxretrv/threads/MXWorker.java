@@ -2,7 +2,6 @@ package org.mxretrv.threads;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
 import org.mxretrv.dns.MXRecordRetriever;
 
 import javax.naming.NamingException;
@@ -22,14 +21,14 @@ public class MXWorker implements Worker, Runnable {
     /**
      * ArrayList containing domains.
      */
-    private final ArrayList<String> domains;
+    private final List<String> domains;
 
     private final int inputSize;
 
     private final Logger logger = LogManager.getLogger(MXWorker.class);
 
-    public MXWorker(IOQueue<Map<String, List<String>>> inputQueue, ArrayList<String> domains) {
-        if (domains == null || domains.size() == 0)
+    public MXWorker(IOQueue<Map<String, List<String>>> inputQueue, List<String> domains) {
+        if (domains == null || domains.isEmpty())
             throw new IllegalArgumentException("worker " + Thread.currentThread().getName() + " receives input that is null or has 0 size");
         if (inputQueue == null)
             throw new IllegalArgumentException("worker " + Thread.currentThread().getName() + " receives io queue that is null");
@@ -55,7 +54,6 @@ public class MXWorker implements Worker, Runnable {
             }
             logInfo(logger, domain);
         }
-        String jsonArrStr = new JSONObject(domainMx).toString(4);
         synchronized (inputQueue) {
             inputQueue.offer(domainMx);
         }
@@ -68,7 +66,7 @@ public class MXWorker implements Worker, Runnable {
     }
 
 
-    public ArrayList<String> getDomains() {
+    public List<String> getDomains() {
         return domains;
     }
 

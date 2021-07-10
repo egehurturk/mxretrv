@@ -37,7 +37,7 @@ public class MXRecordRetriever {
         if (mx == null)
             return null;
         NamingEnumeration<?> nEnum = mx.getAll();
-        List<String> records = new ArrayList<String>();
+        List<String> records = new ArrayList<>();
 
         while (nEnum.hasMore()) {
             String mxRaw = (String) (nEnum.next());
