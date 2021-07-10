@@ -52,7 +52,7 @@ public class App {
         }
 
         IOQueue<Map<String, List<String>>> queue = new IOQueue<>();
-        ArrayList<String> data = IOUtils.readFromCsv(inputFileStr, 1050);
+        ArrayList<String> data = IOUtils.readFromCsv(inputFileStr);
 
         logInfo(logger, "data size: " + data.size());
 

@@ -28,10 +28,11 @@ public class MXWorker implements Worker, Runnable {
     private final Logger logger = LogManager.getLogger(MXWorker.class);
 
     public MXWorker(IOQueue<Map<String, List<String>>> inputQueue, List<String> domains) {
-        if (domains == null || domains.isEmpty())
+        Objects.requireNonNull(domains);
+        Objects.requireNonNull(inputQueue);
+
+        if (domains.isEmpty())
             throw new IllegalArgumentException("worker " + Thread.currentThread().getName() + " receives input that is null or has 0 size");
-        if (inputQueue == null)
-            throw new IllegalArgumentException("worker " + Thread.currentThread().getName() + " receives io queue that is null");
         this.inputQueue = inputQueue;
         this.domains = domains;
         this.inputSize = domains.size();
@@ -44,10 +45,7 @@ public class MXWorker implements Worker, Runnable {
         for (String domain: domains) {
             try {
                 List<String> records = MXRecordRetriever.mxRecords(domain);
-                if (records == null)
-                    domainMx.put(domain, Collections.singletonList(""));
-                else
-                    domainMx.put(domain, records);
+                domainMx.put(domain, records);
             } catch (NamingException e) {
                 logWarn(logger, "Naming exception [" + domain + "]: "  + e.getMessage());
                 domainMx.put(domain, Collections.singletonList(""));

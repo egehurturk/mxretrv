@@ -1,21 +1,20 @@
 package org.mxretrv.threads;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.mxretrv.dns.MXRecordRetriever;
 import org.mxretrv.utils.IOUtils;
 
 import javax.naming.NamingException;
-import java.util.Collections;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SingleThreadWorker implements Worker {
+    private static final Logger logger = LogManager.getLogger();
     private String inputFileStr;
     private String outputFileStr;
 
@@ -53,10 +52,7 @@ public class SingleThreadWorker implements Worker {
         for (String domain: data) {
             try {
                 List<String> domains = MXRecordRetriever.mxRecords(domain);
-                if (domains == null)
-                    domainMx.put(domain, Collections.singletonList(""));    
-                else
-                    domainMx.put(domain, domains);    
+                domainMx.put(domain, domains);
             } catch (NamingException err) {
                 domainMx.put(domain, Collections.singletonList(""));
             }
@@ -64,7 +60,7 @@ public class SingleThreadWorker implements Worker {
         }
         String json = new JSONObject(domainMx).toString(4);
         if (!IOUtils.writeToFile(json, outputFileStr))
-            System.err.println("cannot write to file");
+            logger.fatal("cannot write to file");
     }
 
 

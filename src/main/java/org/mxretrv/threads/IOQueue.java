@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 public class IOQueue<T> extends AbstractQueue<T> {
     /** queue data */
-    private LinkedBlockingQueue<T> elements;
+    private final LinkedBlockingQueue<T> elements;
 
     public IOQueue() {
         this.elements = new LinkedBlockingQueue<>();

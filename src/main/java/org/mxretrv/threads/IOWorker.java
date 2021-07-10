@@ -1,5 +1,7 @@
 package org.mxretrv.threads;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.mxretrv.App;
 import org.mxretrv.utils.IOUtils;
@@ -9,11 +11,15 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class IOWorker implements Worker {
     /**
      * Input queue that this class listens on
      */
+
+    private final Logger logger = LogManager.getLogger(IOWorker.class);
+
     private final IOQueue<Map<String, List<String>>> inputQueue;
 
     private final File inputFile;
@@ -21,8 +27,8 @@ public class IOWorker implements Worker {
     private final File outputFile;
 
     public IOWorker(IOQueue<Map<String, List<String>>> inputQueue, String inputFileStr, String outputFileStr) {
-        if (inputQueue == null)
-            throw new IllegalArgumentException("IOWorker " + Thread.currentThread().getName() + " receives io queue that is null");
+        Objects.requireNonNull(inputQueue);
+
         this.inputQueue = inputQueue;
         File temp1 = new File(inputFileStr);
         File temp2 = new File(outputFileStr);
@@ -41,10 +47,11 @@ public class IOWorker implements Worker {
 
     @Override
     public void work() {
+        logger.info("Building JSON...");
         Map<String, List<String>> all = new HashMap<>();
-        for (Map<String, List<String>> map: inputQueue) {
-            all.putAll(map);
-        }
+
+        inputQueue.forEach(all::putAll);
+
         String json = new JSONObject(all).toString(4);
         if (App.isUseStdout())
             System.out.println("\n\n\n" + json + "\n\n\n");

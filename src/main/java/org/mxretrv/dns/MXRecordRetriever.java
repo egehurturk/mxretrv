@@ -7,23 +7,15 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MXRecordRetriever {
-    public static void main(String[] args) throws NamingException {
-        List<String> l = mxRecords("octeth.com");
-        if (l == null) {
-            System.out.println("no records");
-            return;
-        }
-        for (String s: l) {
-            System.out.print(s + " ");
-        }
-        System.out.println();
-    }
+public final class MXRecordRetriever {
+
+    private MXRecordRetriever() { throw new IllegalStateException("Utility Class"); }
 
     /**
      * Get MX records of a given domain name as an array
@@ -35,7 +27,7 @@ public class MXRecordRetriever {
     public static List<String> mxRecords(String domain) throws NamingException {
         Attribute mx = mxAttr(domain);
         if (mx == null)
-            return null;
+            return Collections.singletonList("");
         NamingEnumeration<?> nEnum = mx.getAll();
         List<String> records = new ArrayList<>();
 

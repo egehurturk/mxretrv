@@ -11,6 +11,9 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
 public final class IOUtils {
+
+    private IOUtils() { throw new IllegalStateException("Utility Class"); }
+
     private static final Logger logger = LogManager.getLogger(IOUtils.class);
     private static int ntimes = 0;
     private static int nftimes = 0;
@@ -81,7 +84,6 @@ public final class IOUtils {
         }
         try {
             Files.write(p, content.getBytes(), StandardOpenOption.APPEND);
-            // FIXME: HERE
         } catch (IOException e) {
             logger.warn("IO error occurred. Cannot write to " + out.getName());
             e.printStackTrace();
