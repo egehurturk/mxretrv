@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class IOUtilsTest {
-    String fileName = "/Users/egehurturk/Development/Mxretrv/src/test/java/org/mxretrv/utils/hello.txt";
+    String fileName = "hello.txt";
     Path path;
 
     @BeforeEach
